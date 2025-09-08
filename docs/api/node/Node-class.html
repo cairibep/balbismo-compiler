@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the Node class from the node library, for the Dart programming language.">
+  <title>Node class - node library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">balbismo</a></li>
+    <li><a href="../node/">node.dart</a></li>
+    <li class="self-crumb">Node<span class="signature">&lt;<wbr><span class="type-parameter">T</span>, <span class="type-parameter">E</span>&gt;</span> class</li>
+  </ol>
+  <div class="self-name">Node</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+<div
+    id="dartdoc-main-content"
+    class="main-content"
+    data-above-sidebar="node&#47;node-library-sidebar.html"
+    data-below-sidebar="node&#47;Node-class-sidebar.html">
+    <div>
+<h1><span class="kind-class">Node&lt;<wbr><span class="type-parameter">T</span>, <span class="type-parameter">E</span>&gt;</span> class 
+    <a href="https://dart.dev/language/class-modifiers#abstract" class="feature feature-abstract" title="This type can not be directly constructed.">abstract</a>
+ 
+</h1></div>
+
+    
+<section class="desc markdown">
+  <p>Abstract base class for all AST nodes in the Balbismo compiler.</p>
+<p>This class defines the fundamental structure and behavior that all AST nodes
+must implement. Each node represents a construct in the Balbismo language
+and is responsible for generating the corresponding LLVM IR code.</p>
+<p>The generic type parameters provide type safety:</p>
+<ul>
+<li><code>T</code>: The type of the node's value (e.g., String for identifiers, int for literals)</li>
+<li><code>E</code>: The type returned by the evaluate method (typically <code>void</code> for statements, <a href="../vars/LangVal-class.html">LangVal</a> for expressions)</li>
+</ul>
+<p>Key responsibilities of AST nodes:</p>
+<ul>
+<li><strong>Code Generation</strong>: Generate LLVM IR instructions via the <a href="../node/Node/evaluate.html">evaluate</a> method</li>
+<li><strong>Type Checking</strong>: Ensure type safety during compilation</li>
+<li><strong>Symbol Resolution</strong>: Interact with the symbol table for variable/function lookup</li>
+<li><strong>Error Reporting</strong>: Provide meaningful error messages for invalid constructs</li>
+</ul>
+<p>All nodes automatically receive a unique ID for LLVM register naming and
+participate in the global LLVM IR generation process.</p>
+</section>
+
+
+    <section>
+      <dl class="dl-horizontal">
+        
+
+        
+        
+
+          <dt>Implementers</dt>
+          <dd><ul class="comma-separated clazz-relationships">
+              <li><a href="../node/ArgumentList-class.html">ArgumentList</a></li>
+              <li><a href="../node/ArraySpecification-class.html">ArraySpecification</a></li>
+              <li><a href="../node/ArrayTypeNode-class.html">ArrayTypeNode</a></li>
+              <li><a href="../node/AssignmentNode-class.html">AssignmentNode</a></li>
+              <li><a href="../node/BinOp-class.html">BinOp</a></li>
+              <li><a href="../node/BlockNode-class.html">BlockNode</a></li>
+              <li><a href="../node/BoolBinOp-class.html">BoolBinOp</a></li>
+              <li><a href="../node/BoolUnOp-class.html">BoolUnOp</a></li>
+              <li><a href="../node/DeclareNode-class.html">DeclareNode</a></li>
+              <li><a href="../node/FloatVal-class.html">FloatVal</a></li>
+              <li><a href="../node/FuncCall-class.html">FuncCall</a></li>
+              <li><a href="../node/FuncDec-class.html">FuncDec</a></li>
+              <li><a href="../node/FunctionList-class.html">FunctionList</a></li>
+              <li><a href="../node/IdentifierNode-class.html">IdentifierNode</a></li>
+              <li><a href="../node/IfNode-class.html">IfNode</a></li>
+              <li><a href="../node/IntVal-class.html">IntVal</a></li>
+              <li><a href="../node/ParameterList-class.html">ParameterList</a></li>
+              <li><a href="../node/PrintNode-class.html">PrintNode</a></li>
+              <li><a href="../node/RelOp-class.html">RelOp</a></li>
+              <li><a href="../node/ReturnStatement-class.html">ReturnStatement</a></li>
+              <li><a href="../node/ScanfNode-class.html">ScanfNode</a></li>
+              <li><a href="../node/StringLiteral-class.html">StringLiteral</a></li>
+              <li><a href="../node/TypeCast-class.html">TypeCast</a></li>
+              <li><a href="../node/TypeNode-class.html">TypeNode</a></li>
+              <li><a href="../node/UnOp-class.html">UnOp</a></li>
+              <li><a href="../node/WhileNode-class.html">WhileNode</a></li>
+          </ul></dd>
+
+        
+        
+
+
+      </dl>
+    </section>
+
+    
+  <section class="summary offset-anchor" id="constructors">
+    <h2>Constructors</h2>
+    <dl class="constructor-summary-list">
+        <dt id="Node.new" class="callable">
+          <span class="name"><a href="../node/Node/Node.html">Node.new</a></span><span class="signature">(<span class="parameter" id="-param-nodeValue"><span class="type-annotation">T</span> <span class="parameter-name">nodeValue</span>, </span><span class="parameter" id="-param-children"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.1/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../node/Node-class.html">Node</a></span>&gt;</span></span> <span class="parameter-name">children</span></span>)</span>
+        </dt>
+        <dd>
+          Constructs a new AST node with the given value and children.
+        </dd>
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-properties">
+    <h2>Properties</h2>
+    <dl class="properties">
+        <dt id="children" class="property">
+  <span class="name"><a href="../node/Node/children.html">children</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.8.1/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="../node/Node-class.html">Node</a></span>&gt;</span></span>
+  
+
+</dt>
+<dd>
+  Child nodes that form the structure of this node.
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="hashCode" class="property inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.8.1/dart-core/Object/hashCode.html">hashCode</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.8.1/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  The hash code for this object.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="id" class="property">
+  <span class="name"><a href="../node/Node/id.html">id</a></span>
+  <span class="signature">&#8596; <a href="https://api.dart.dev/stable/3.8.1/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd>
+  Unique identifier for this node, used for LLVM register naming.
+  <div class="features"><span class="feature">getter/setter pair</span></div>
+
+</dd>
+
+        <dt id="nodeValue" class="property">
+  <span class="name"><a href="../node/Node/nodeValue.html">nodeValue</a></span>
+  <span class="signature">&#8594; T</span>
+  
+
+</dt>
+<dd>
+  The primary value associated with this node (varies by node type).
+  <div class="features"><span class="feature">final</span></div>
+
+</dd>
+
+        <dt id="runtimeType" class="property inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.8.1/dart-core/Object/runtimeType.html">runtimeType</a></span>
+  <span class="signature">&#8594; <a href="https://api.dart.dev/stable/3.8.1/dart-core/Type-class.html">Type</a></span>
+  
+
+</dt>
+<dd class="inherited">
+  A representation of the runtime type of the object.
+  <div class="features"><span class="feature">no setter</span><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+
+    
+  <section
+      class="summary offset-anchor"
+      id="instance-methods">
+    <h2>Methods</h2>
+    <dl class="callables">
+        <dt id="evaluate" class="callable">
+  <span class="name"><a href="../node/Node/evaluate.html">evaluate</a></span><span class="signature">(<wbr><span class="parameter" id="evaluate-param-table"><span class="type-annotation"><a href="../SymbolTable/SymbolTable-class.html">SymbolTable</a></span> <span class="parameter-name">table</span></span>)
+    <span class="returntype parameter">&#8594; E</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Evaluates this AST node and generates corresponding LLVM IR code.
+  
+
+</dd>
+
+        <dt id="noSuchMethod" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.8.1/dart-core/Object/noSuchMethod.html">noSuchMethod</a></span><span class="signature">(<wbr><span class="parameter" id="noSuchMethod-param-invocation"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.1/dart-core/Invocation-class.html">Invocation</a></span> <span class="parameter-name">invocation</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  Invoked when a nonexistent method or property is accessed.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+        <dt id="toString" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.8.1/dart-core/Object/toString.html">toString</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.8.1/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  A string representation of this object.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+  <section
+      class="summary offset-anchor inherited"
+      id="operators">
+    <h2>Operators</h2>
+    <dl class="callables">
+        <dt id="operator ==" class="callable inherited">
+  <span class="name"><a href="https://api.dart.dev/stable/3.8.1/dart-core/Object/operator_equals.html">operator ==</a></span><span class="signature">(<wbr><span class="parameter" id="==-param-other"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.1/dart-core/Object-class.html">Object</a></span> <span class="parameter-name">other</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.8.1/dart-core/bool-class.html">bool</a></span>
+  </span>
+  
+
+</dt>
+<dd class="inherited">
+  The equality operator.
+  <div class="features"><span class="feature">inherited</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+  <section class="summary offset-anchor" id="static-properties">
+    <h2>Static Properties</h2>
+    <dl class="properties">
+        <dt id="i" class="property">
+  <span class="name"><a href="../node/Node/i.html">i</a></span>
+  <span class="signature">&#8596; <a href="https://api.dart.dev/stable/3.8.1/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd>
+  Global counter for generating unique node IDs.
+  <div class="features"><span class="feature">getter/setter pair</span></div>
+
+</dd>
+
+        <dt id="ir" class="property">
+  <span class="name"><a href="../node/Node/ir.html">ir</a></span>
+  <span class="signature">&#8596; <a href="https://api.dart.dev/stable/3.8.1/dart-core/String-class.html">String</a></span>
+  
+
+</dt>
+<dd>
+  Global LLVM IR code accumulator.
+  <div class="features"><span class="feature">getter/setter pair</span></div>
+
+</dd>
+
+        <dt id="irIndent" class="property">
+  <span class="name"><a href="../node/Node/irIndent.html">irIndent</a></span>
+  <span class="signature">&#8596; <a href="https://api.dart.dev/stable/3.8.1/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd>
+  Current indentation level for LLVM IR formatting.
+  <div class="features"><span class="feature">getter/setter pair</span></div>
+
+</dd>
+
+        <dt id="strCount" class="property">
+  <span class="name"><a href="../node/Node/strCount.html">strCount</a></span>
+  <span class="signature">&#8596; <a href="https://api.dart.dev/stable/3.8.1/dart-core/int-class.html">int</a></span>
+  
+
+</dt>
+<dd>
+  Global counter for generating unique string constant names.
+  <div class="features"><span class="feature">getter/setter pair</span></div>
+
+</dd>
+
+    </dl>
+  </section>
+    
+  <section class="summary offset-anchor" id="static-methods">
+    <h2>Static Methods</h2>
+    <dl class="callables">
+        <dt id="addConstantString" class="callable">
+  <span class="name"><a href="../node/Node/addConstantString.html">addConstantString</a></span><span class="signature">(<wbr><span class="parameter" id="addConstantString-param-value"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.1/dart-core/String-class.html">String</a></span> <span class="parameter-name">value</span></span>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.8.1/dart-core/String-class.html">String</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Adds a string constant to the LLVM IR and returns its global name.
+  
+
+</dd>
+
+        <dt id="addHeaderIrLine" class="callable">
+  <span class="name"><a href="../node/Node/addHeaderIrLine.html">addHeaderIrLine</a></span><span class="signature">(<wbr><span class="parameter" id="addHeaderIrLine-param-line"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.1/dart-core/String-class.html">String</a></span> <span class="parameter-name">line</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Adds a line to the LLVM IR header section.
+  
+
+</dd>
+
+        <dt id="addIrLine" class="callable">
+  <span class="name"><a href="../node/Node/addIrLine.html">addIrLine</a></span><span class="signature">(<wbr><span class="parameter" id="addIrLine-param-line"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.1/dart-core/String-class.html">String</a></span> <span class="parameter-name">line</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Adds a line to the LLVM IR with current indentation.
+  
+
+</dd>
+
+        <dt id="addIrlLabel" class="callable">
+  <span class="name"><a href="../node/Node/addIrlLabel.html">addIrlLabel</a></span><span class="signature">(<wbr><span class="parameter" id="addIrlLabel-param-label"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.1/dart-core/String-class.html">String</a></span> <span class="parameter-name">label</span></span>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Adds a labeled block to the LLVM IR and increases indentation.
+  
+
+</dd>
+
+        <dt id="endIrLabel" class="callable">
+  <span class="name"><a href="../node/Node/endIrLabel.html">endIrLabel</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; dynamic</span>
+  </span>
+  
+
+</dt>
+<dd>
+  Ends a labeled block by decreasing indentation.
+  
+
+</dd>
+
+        <dt id="newId" class="callable">
+  <span class="name"><a href="../node/Node/newId.html">newId</a></span><span class="signature">(<wbr>)
+    <span class="returntype parameter">&#8594; <a href="https://api.dart.dev/stable/3.8.1/dart-core/int-class.html">int</a></span>
+  </span>
+  
+
+</dt>
+<dd>
+  Generates a new unique ID for node identification.
+  
+
+</dd>
+
+    </dl>
+  </section>
+    
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">balbismo</a></li>
+    <li><a href="../node/">node</a></li>
+    <li class="self-crumb">Node<span class="signature">&lt;<wbr><span class="type-parameter">T</span>, <span class="type-parameter">E</span>&gt;</span> class</li>
+</ol>
+
+    <h5>node library</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div>
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    balbismo
+      1.0.0
+  </span>
+  
+</footer>
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+

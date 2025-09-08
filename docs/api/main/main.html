@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1, user-scalable=no">
+  <meta name="description" content="API docs for the main function from the main library, for the Dart programming language.">
+  <title>main function - main library - Dart API</title>
+
+
+  
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0" rel="stylesheet">
+  
+  <link rel="stylesheet" href="../static-assets/github.css?v1">
+  <link rel="stylesheet" href="../static-assets/styles.css?v1">
+  <link rel="icon" href="../static-assets/favicon.png?v1">
+  
+</head>
+
+<body data-base-href="../" data-using-base-href="false" class="light-theme">
+<div id="overlay-under-drawer"></div>
+<header id="title">
+  <span id="sidenav-left-toggle" class="material-symbols-outlined" role="button" tabindex="0">menu</span>
+  <ol class="breadcrumbs gt-separated dark hidden-xs">
+    <li><a href="../index.html">balbismo</a></li>
+    <li><a href="../main/">main.dart</a></li>
+    <li class="self-crumb">main function</li>
+  </ol>
+  <div class="self-name">main</div>
+  <form class="search navbar-right" role="search">
+    <input type="text" id="search-box" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+  <button class="toggle" id="theme-button" title="Toggle between light and dark mode" aria-label="Light and dark mode toggle">
+    <span id="dark-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      dark_mode
+    </span>
+    <span id="light-theme-button" class="material-symbols-outlined" aria-hidden="true">
+      light_mode
+    </span>
+  </button>
+</header>
+<main>
+  <div
+      id="dartdoc-main-content"
+      class="main-content"
+      data-above-sidebar="main&#47;main-library-sidebar.html"
+      data-below-sidebar="">
+      <div>
+<h1><span class="kind-function">main</span> function 
+ 
+</h1></div>
+
+    <section class="multi-line-signature">
+        
+<span class="returntype"><a href="https://api.dart.dev/stable/3.8.1/dart-core/Future-class.html">Future</a><span class="signature">&lt;<wbr><span class="type-parameter">void</span>&gt;</span></span>
+<span class="name ">main</span>(<wbr><ol class="parameter-list single-line"> <li><span class="parameter" id="main-param-arguments"><span class="type-annotation"><a href="https://api.dart.dev/stable/3.8.1/dart-core/List-class.html">List</a><span class="signature">&lt;<wbr><span class="type-parameter"><a href="https://api.dart.dev/stable/3.8.1/dart-core/String-class.html">String</a></span>&gt;</span></span> <span class="parameter-name">arguments</span></span></li>
+</ol>)
+
+        
+
+    </section>
+    
+<section class="desc markdown">
+  <p>Main entry point for the Balbismo compiler.</p>
+<p>Orchestrates the complete compilation pipeline based on command line arguments.
+The compilation process includes:</p>
+<ol>
+<li>Parsing command line arguments to determine compilation mode and input file</li>
+<li>Lexical and syntax analysis using flex-bison parser</li>
+<li>AST loading and semantic analysis</li>
+<li>LLVM IR code generation</li>
+<li>Optional optimization, assembly generation, or binary compilation</li>
+<li>Direct execution if requested</li>
+</ol>
+<p>Command line usage:</p>
+<pre class="language-bash"><code class="language-bash">balbismo &lt;mode&gt; &lt;file&gt; [args]
+</code></pre>
+<p>Supported modes:</p>
+<ul>
+<li><code>gen-ir</code>: Generate LLVM IR code</li>
+<li><code>opt-ir</code>: Generate optimized LLVM IR</li>
+<li><code>gen-asm</code>: Generate assembly code</li>
+<li><code>compile</code>: Compile to binary</li>
+<li><code>run</code>: Generate IR and execute with lli</li>
+</ul>
+<p>Parameters:</p>
+<ul>
+<li><code>arguments</code>: Command line arguments passed to the compiler</li>
+</ul>
+<p>Throws:</p>
+<ul>
+<li><a href="https://api.dart.dev/stable/3.8.1/dart-core/Exception-class.html">Exception</a> when compilation fails at any stage</li>
+</ul>
+</section>
+
+
+    
+<section class="summary source-code" id="source">
+  <h2><span>Implementation</span></h2>
+  <pre class="language-dart"><code class="language-dart">Future&lt;void&gt; main(List&lt;String&gt; arguments) async{
+  var mode = CompileModes.IR;
+  var fileInName = &quot;&quot;;
+  var extraArgs = &lt;String&gt;[];
+  if (arguments.length == 1) {
+      printUsage();
+  } else if (arguments.length &gt; 1) {
+    mode  = switch (arguments[0]){
+      &quot;gen-ir&quot; =&gt; CompileModes.IR,
+      &quot;gen-asm&quot; =&gt; CompileModes.ASM,
+      &quot;compile&quot; =&gt; CompileModes.BIN,
+      &quot;run&quot; =&gt; CompileModes.RUN,
+      &quot;opt-ir&quot; =&gt; CompileModes.OPT_IR,
+      _ =&gt; invalidMode(),
+    };
+    fileInName = arguments[1];
+    extraArgs = arguments.sublist(2);
+  } else {
+    print(&quot;No file specified&quot;);
+    printUsage();
+  }
+  String outputPath = switch (mode) {
+    CompileModes.IR =&gt; &quot;build&#47;main.ll&quot;,
+    CompileModes.OPT_IR =&gt; &quot;build&#47;main.ll&quot;,
+    CompileModes.ASM =&gt; &quot;build&#47;main.s&quot;,
+    CompileModes.BIN =&gt; &quot;build&#47;main&quot;,
+    CompileModes.RUN =&gt; &quot;&quot;
+
+  };
+  &#47;&#47; check if -o is in extraArgs
+  if (extraArgs.contains(&quot;-o&quot;)) {
+    var index = extraArgs.indexOf(&quot;-o&quot;);
+    outputPath = extraArgs[index + 1];
+    extraArgs.removeAt(index);
+    extraArgs.removeAt(index);
+  }
+
+  Node.ir += &quot;declare i32 @printf(i8*, ...)\n&quot;;
+  Node.ir += &quot;declare i32 @scanf(i8*, ...)\n&quot;;
+    &#47;&#47;check if build directory exists
+  if (!Directory(&quot;build&quot;).existsSync()) {
+    Directory(&quot;build&quot;).createSync();
+    &#47;&#47;check if tmp directory exists
+    if (!Directory(&quot;build&#47;tmp&quot;).existsSync()) {
+      Directory(&quot;build&#47;tmp&quot;).createSync();
+    }
+  }
+  &#47;&#47;run bison parser binary named balbismo_parser using process pass file to stdin
+  var parser = await Process.start(&quot;lex-parse&#47;balbismo_parser&quot;, [&quot;-o&quot;, &quot;build&#47;tmp&#47;ast.out&quot;]);
+  var codeFile = File(fileInName);
+
+
+  codeFile.openRead().pipe(parser.stdin);
+  print(&quot;Parsing with flex-bison&quot;);
+
+  String parserError = await parser.stderr.transform(utf8.decoder).join(&quot;\n&quot;);
+  int _ = await parser.exitCode;
+  if (parserError.isNotEmpty) {
+    print(&quot;-------------Parser failed---------------&quot;);
+    print(parserError);
+
+    exit(1);
+  } else {
+    print(&quot;---------------Parser finished successfully----------------&quot;);
+  }
+  print(&quot;Reading AST file: build&#47;tmp&#47;ast.out&quot;);
+  var ast = parseAstFile(&quot;build&#47;tmp&#47;ast.out&quot;);
+  print(&quot;-----------------AST Loaded Successfully-----------------&quot;);
+  print(&quot;Generating IR code on build&#47;tmp&#47;main.ll&quot;);
+  ast.evaluate(SymbolTable());
+  File(&quot;build&#47;tmp&#47;main.ll&quot;).writeAsStringSync(Node.ir);
+  print(&quot;-----------------IR Generated Successfully-----------------&quot;);
+
+
+  switch (mode) {
+    case CompileModes.IR:
+      print(&quot;Outputting IR code to $outputPath&quot;);
+      File(outputPath).writeAsStringSync(Node.ir);
+    case CompileModes.OPT_IR:
+      &#47;&#47;run opt on build&#47;main.ll
+      var opt = await Process.start(&quot;opt&quot;, [&quot;-S&quot;, &quot;build&#47;tmp&#47;main.ll&quot;, &quot;-o&quot;, outputPath, ...extraArgs]);
+      print(&quot;Optimizing IR code with opt and outputting to $outputPath&quot;);
+      opt.stdout.forEach((e)=&gt;print(e));
+      String optError = await opt.stderr.transform(utf8.decoder).join(&quot;\n&quot;);
+      int optExitcode = await opt.exitCode;
+      if (optError.isNotEmpty || optExitcode != 0) {
+        print(&quot;-------------Opt failed---------------&quot;);
+        print(optError);
+        exit(1);
+      }
+      print(&quot;---------------Opt finished successfully----------------&quot;);
+    case CompileModes.ASM:
+      &#47;&#47;run llc on build&#47;main.ll
+      print(&quot;Generating assembly with llc and outputting to $outputPath&quot;);
+      var llc = await Process.start(&quot;llc&quot;, [&quot;-o&quot;, outputPath, &quot;build&#47;tmp&#47;main.ll&quot;, ...extraArgs]);
+      llc.stdout.forEach((e)=&gt;print(e));
+      String llcError = await llc.stderr.transform(utf8.decoder).join(&quot;\n&quot;);
+      int llcExitcode = await llc.exitCode;
+      if (llcError.isNotEmpty || llcExitcode != 0) {
+        print(&quot;-------------llc failed---------------&quot;);
+        print(llcError);
+        exit(1);
+      }
+      print(&quot;---------------llc finished successfully----------------&quot;);
+
+    case CompileModes.BIN:
+      &#47;&#47; run clang on build&#47;main.s
+      print(&quot;Compiling with clang and outputting to $outputPath&quot;);
+      var clang = await Process.start(&quot;clang&quot;, [&quot;-o&quot;, outputPath, &quot;build&#47;tmp&#47;main.ll&quot;, ...extraArgs]);
+      clang.stdout.forEach((e)=&gt;print(e));
+      String clangError = await clang.stderr.transform(utf8.decoder).join(&quot;\n&quot;);
+      int clangExitcode = await clang.exitCode;
+      if (clangExitcode != 0) {
+        print(&quot;-------------clang failed---------------&quot;);
+        print(clangError);
+        exit(1);
+      }
+      print(&quot;---------------clang finished successfully----------------&quot;);
+    case CompileModes.RUN:
+      &#47;&#47;run lli on build&#47;main.ll
+      print(&quot;Running with lli&quot;);
+      print(&quot;----program output:\n&quot;);
+      var lli = await Process.start(&quot;stdbuf&quot;, [&quot;-oL&quot;,&quot;lli&quot;, &quot;build&#47;tmp&#47;main.ll&quot;, ...extraArgs]);
+      lli.stdout.transform(utf8.decoder).forEach((element) =&gt; print(element));
+      stdin.pipe(lli.stdin);
+
+
+      String lliError = await lli.stderr.transform(utf8.decoder).join(&quot;\n&quot;);
+      int lliExitcode = await lli.exitCode;
+      if (lliExitcode != 0) {
+
+        print(&quot;-------------lli failed---------------&quot;);
+        print(lliError);
+        exit(1);
+      }
+      print(&quot;---------------lli finished successfully----------------&quot;);
+    &#47;&#47;close stdin
+    default:
+      break;
+  }
+
+  print(&quot;-----------------Finished Compiling Successfully-----------------&quot;);
+  exit(0);
+
+}</code></pre>
+</section>
+
+
+  </div> <!-- /.main-content -->
+  <div id="dartdoc-sidebar-left" class="sidebar sidebar-offcanvas-left">
+    <!-- The search input and breadcrumbs below are only responsively visible at low resolutions. -->
+<header id="header-search-sidebar" class="hidden-l">
+  <form class="search-sidebar" role="search">
+    <input type="text" id="search-sidebar" autocomplete="off" disabled class="form-control typeahead" placeholder="Loading search...">
+  </form>
+</header>
+<ol class="breadcrumbs gt-separated dark hidden-l" id="sidebar-nav">
+    <li><a href="../index.html">balbismo</a></li>
+    <li><a href="../main/">main</a></li>
+    <li class="self-crumb">main function</li>
+</ol>
+
+    <h5>main library</h5>
+    <div id="dartdoc-sidebar-left-content"></div>
+  </div><!--/.sidebar-offcanvas-left-->
+  <div id="dartdoc-sidebar-right" class="sidebar sidebar-offcanvas-right">
+  </div><!--/.sidebar-offcanvas-->
+</main>
+<footer>
+  <span class="no-break">
+    balbismo
+      1.0.0
+  </span>
+  
+</footer>
+
+
+<script src="../static-assets/highlight.pack.js?v1"></script>
+<script src="../static-assets/docs.dart.js"></script>
+
+</body>
+</html>
+
