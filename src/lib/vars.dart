@@ -33,6 +33,7 @@ enum PrimitiveTypes {
 
   /// Constructs a primitive type with its LLVM IR representation.
   const PrimitiveTypes(this._irType);
+
   /// Converts a string representation to the corresponding primitive type.
   ///
   /// Parameters:
@@ -54,18 +55,12 @@ enum PrimitiveTypes {
     }
   }
 
-  
-
-
-
-
-
   /// Returns the LLVM IR type string representation of this primitive type.
   ///
   /// This is equivalent to accessing the [irType] getter.
   @override
   toString() => irType;
- }
+}
 
 /// Abstract base class for all language types in Balbismo.
 ///
@@ -148,9 +143,7 @@ class ArrayType extends LangType {
   String get irType => "${primitiveType.irType}*";
 }
 
-
-
- /// Represents a value in the Balbismo language with its type information.
+/// Represents a value in the Balbismo language with its type information.
 ///
 /// A [LangVal] encapsulates both the LLVM register name (where the value is stored)
 /// and the type information for that value. This is used throughout the compiler
@@ -179,7 +172,7 @@ class LangVal<T extends LangType> {
   const LangVal(this.regName, this.type);
 }
 
- /// Represents a variable in the Balbismo language with its type and memory location.
+/// Represents a variable in the Balbismo language with its type and memory location.
 ///
 /// A [LangVar] encapsulates both the LLVM pointer name (where the variable is allocated
 /// in memory) and the type information for that variable. This is used by the symbol
@@ -207,7 +200,6 @@ class LangVar<T extends LangType> {
   /// Constructs a language variable with the specified pointer name and type.
   const LangVar(this.ptrName, this.type);
 }
-
 
 /// Represents a function definition in the Balbismo language.
 ///

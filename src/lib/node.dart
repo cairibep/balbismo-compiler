@@ -23,6 +23,7 @@
 
 import 'package:balbismo/SymbolTable.dart';
 import 'package:balbismo/vars.dart';
+
 /// Generates an LLVM constant string definition from a Dart string.
 ///
 /// This utility function converts a Dart string into the LLVM IR format for
@@ -61,7 +62,7 @@ String generateLLVMConstant(String variableName, String content) {
   final llvmContent = '$escapedContent\\00';
 
   // Calculate the size of the array
-  final size = content.runes.length+1;
+  final size = content.runes.length + 1;
 
   // Format as LLVM constant string
   return '$variableName = private constant [$size x i8] c"$llvmContent"';
@@ -138,10 +139,9 @@ abstract class Node<T, E> {
     }
     final strName = "@str.${strCount++}";
     SymbolTable.strings[value] = strName;
-    String content  = generateLLVMConstant(strName, value);
+    String content = generateLLVMConstant(strName, value);
     Node.addHeaderIrLine(content);
     return strName;
-
   }
 
   /// Constructs a new AST node with the given value and children.
@@ -154,6 +154,7 @@ abstract class Node<T, E> {
   Node(this.nodeValue, this.children) {
     id = newId();
   }
+
   /// Global LLVM IR code accumulator.
   ///
   /// This string accumulates all generated LLVM IR code during the compilation
@@ -196,7 +197,7 @@ abstract class Node<T, E> {
   /// Parameters:
   /// - [line]: The LLVM IR line to add to the header
   static addHeaderIrLine(String line) {
-    ir  = "${line.trim()}\n$ir";
+    ir = "${line.trim()}\n$ir";
   }
 
   /// Adds a line to the LLVM IR with current indentation.
@@ -346,7 +347,7 @@ class ArrayTypeNode extends Node<LangType, void> {
   /// - [primitiveTypeNode]: The primitive element type (int or float)
   /// - [size]: The array size specification (can be a constant or expression)
   ArrayTypeNode(TypeNode primitiveTypeNode, ArraySpecification size)
-      : super(ArrayType(primitiveTypeNode.nodeValue.primitiveType), [size]);
+    : super(ArrayType(primitiveTypeNode.nodeValue.primitiveType), [size]);
 
   /// Gets the array size specification from the children.
   ArraySpecification get size => children[0] as ArraySpecification;
@@ -370,11 +371,12 @@ class ArraySpecification extends Node<void, LangVal?> {
   /// Parameters:
   /// - [expr]: The expression that determines the array size, or null for unspecified size
   ArraySpecification(Node<dynamic, LangVal>? expr)
-      : super(null, [if (expr != null) expr]);
+    : super(null, [if (expr != null) expr]);
 
   /// Gets the size expression from the children, or null if no expression provided.
   Node<dynamic, LangVal>? get childExpr =>
       children.firstOrNull as Node<dynamic, LangVal>?;
+
   /// Evaluates the array size expression if present.
   ///
   /// If a size expression is provided, this method evaluates it to determine
@@ -446,7 +448,8 @@ class IdentifierNode extends Node<String, LangVal> {
       return LangVal(varData.ptrName, varData.type);
     }
     Node.addIrLine(
-        "%var$id = load ${varData.type.primitiveType.irType}, ptr ${varData.ptrName}");
+      "%var$id = load ${varData.type.primitiveType.irType}, ptr ${varData.ptrName}",
+    );
     return LangVal("%var$id", varData.type);
   }
 }
@@ -512,9 +515,11 @@ class IndexedIdentifierNode extends IdentifierNode {
       throw Exception("Index must be int");
     }
     Node.addIrLine(
-        "%arrayPtr.$id = getelementptr ${varData.type.primitiveType.irType}, ${varData.type.irType} ${varData.ptrName}, i64 ${indexResult.regName}");
+      "%arrayPtr.$id = getelementptr ${varData.type.primitiveType.irType}, ${varData.type.irType} ${varData.ptrName}, i64 ${indexResult.regName}",
+    );
     Node.addIrLine(
-        "%var$id = load ${varData.type.primitiveType.irType}, ptr %arrayPtr.$id");
+      "%var$id = load ${varData.type.primitiveType.irType}, ptr %arrayPtr.$id",
+    );
     return LangVal("%var$id", PrimitiveType(varData.type.primitiveType));
   }
 }
@@ -704,7 +709,7 @@ class ReturnStatement extends Node<void, void> {
 ///   ret i64 %result
 /// }
 /// ```
-class FuncDec extends Node<void,void> {
+class FuncDec extends Node<void, void> {
   /// Constructs a function declaration with all its components.
   ///
   /// Parameters:
@@ -712,8 +717,12 @@ class FuncDec extends Node<void,void> {
   /// - [identifier]: The function name
   /// - [params]: The parameter list
   /// - [block]: The function body block
-  FuncDec(TypeNode returnType, IdentifierNode identifier,ParameterList params, BlockNode block)
-      : super(null, [returnType, identifier, params, block]);
+  FuncDec(
+    TypeNode returnType,
+    IdentifierNode identifier,
+    ParameterList params,
+    BlockNode block,
+  ) : super(null, [returnType, identifier, params, block]);
 
   /// Gets the function name identifier.
   IdentifierNode get identifier => children[1] as IdentifierNode;
@@ -748,23 +757,35 @@ class FuncDec extends Node<void,void> {
     final returnType = this.returnType.nodeValue;
     final func = LangFunc(funcName, this);
     SymbolTable.createFunction(funcName, func);
-    final String paramsStr = params.map((e) => "${e.type.nodeValue.irType} %${e.identifier.nodeValue} ").join(", ");
+    final String paramsStr = params
+        .map((e) => "${e.type.nodeValue.irType} %${e.identifier.nodeValue} ")
+        .join(", ");
     Node.addIrLine("define ${returnType.irType} @$funcName($paramsStr) {");
     Node.addIrlLabel("entry");
     final newTable = SymbolTable();
     for (var param in params) {
       if (param.type.nodeValue is ArrayType) {
-        newTable.create(param.identifier.nodeValue, LangVar("%${param.identifier.nodeValue}", param.type.nodeValue));
+        newTable.create(
+          param.identifier.nodeValue,
+          LangVar("%${param.identifier.nodeValue}", param.type.nodeValue),
+        );
         continue;
       }
 
-    final ptrName = "%ptr.${param.identifier.nodeValue}.$id";
+      final ptrName = "%ptr.${param.identifier.nodeValue}.$id";
       Node.addIrLine("$ptrName = alloca ${param.type.nodeValue.irType}");
-      Node.addIrLine("store ${param.type.nodeValue.irType} %${param.identifier.nodeValue}, ptr $ptrName");
-      newTable.create(param.identifier.nodeValue, LangVar(ptrName, param.type.nodeValue));
+      Node.addIrLine(
+        "store ${param.type.nodeValue.irType} %${param.identifier.nodeValue}, ptr $ptrName",
+      );
+      newTable.create(
+        param.identifier.nodeValue,
+        LangVar(ptrName, param.type.nodeValue),
+      );
     }
     block.evaluate(newTable);
-    Node.addIrLine("ret ${returnType.irType} ${returnType.primitiveType == PrimitiveTypes.int ? "0" : "0.0"}");
+    Node.addIrLine(
+      "ret ${returnType.irType} ${returnType.primitiveType == PrimitiveTypes.int ? "0" : "0.0"}",
+    );
     Node.endIrLabel();
     Node.addIrLine("}");
   }
@@ -794,9 +815,10 @@ class ArgumentList extends Node<void, List<LangVal>> {
   ///
   /// Parameters:
   /// - [children]: List of argument expressions to evaluate
-  ArgumentList(List<Node<dynamic,LangVal>> children) : super(null, children);
+  ArgumentList(List<Node<dynamic, LangVal>> children) : super(null, children);
 
-  List<Node<dynamic, LangVal>> get args => children.cast<Node<dynamic, LangVal>>();
+  List<Node<dynamic, LangVal>> get args =>
+      children.cast<Node<dynamic, LangVal>>();
 
   @override
   List<LangVal> evaluate(SymbolTable table) {
@@ -833,7 +855,7 @@ class FuncCall extends Node<void, LangVal> {
   /// - [identifier]: The name of the function to call
   /// - [args]: The list of arguments to pass to the function
   FuncCall(IdentifierNode identifier, ArgumentList args)
-      : super(null, [identifier, args]);
+    : super(null, [identifier, args]);
 
   IdentifierNode get identifier => children[0] as IdentifierNode;
   ArgumentList get args => children[1] as ArgumentList;
@@ -854,11 +876,16 @@ class FuncCall extends Node<void, LangVal> {
         throw Exception("Argument type mismatch");
       }
     }
-    final argStr = argValues.map((e) => "${e.type.irType} ${e.regName}").join(", ");
-    Node.addIrLine("%call.$id = call ${func.funcDec.returnType.nodeValue.irType} @${func.name}($argStr)");
+    final argStr = argValues
+        .map((e) => "${e.type.irType} ${e.regName}")
+        .join(", ");
+    Node.addIrLine(
+      "%call.$id = call ${func.funcDec.returnType.nodeValue.irType} @${func.name}($argStr)",
+    );
     return LangVal("%call.$id", func.funcDec.returnType.nodeValue);
   }
 }
+
 /// Represents a floating-point literal value in Balbismo.
 ///
 /// A floating-point value node represents a constant floating-point literal
@@ -894,9 +921,11 @@ class FloatVal extends Node<double, LangVal> {
 }
 
 class DeclareNode extends Node<void, void> {
-  DeclareNode(Node<LangType, dynamic> type, IdentifierNode identifier,
-      [Node? value])
-      : super(null, [type, identifier, if (value != null) value]);
+  DeclareNode(
+    Node<LangType, dynamic> type,
+    IdentifierNode identifier, [
+    Node? value,
+  ]) : super(null, [type, identifier, if (value != null) value]);
 
   IdentifierNode get identifier => children[1] as IdentifierNode;
   Node<LangType, dynamic> get type => children[0] as Node<LangType, dynamic>;
@@ -916,23 +945,24 @@ class DeclareNode extends Node<void, void> {
         }
 
         Node.addIrLine(
-            "store ${varType.primitiveType.irType} ${value.regName}, ptr $ptrName");
+          "store ${varType.primitiveType.irType} ${value.regName}, ptr $ptrName",
+        );
       }
     } else if (varType is ArrayType) {
       var arrayTypeNode = type as ArrayTypeNode;
       var size = arrayTypeNode.size.evaluate(table);
       if (size != null) {
         Node.addIrLine(
-            "%arrayptr.$id = alloca ${varType.primitiveType.irType}, i64 ${size.regName}");
-            
+          "%arrayptr.$id = alloca ${varType.primitiveType.irType}, i64 ${size.regName}",
+        );
 
         Node.addIrLine(
-            "$ptrName = getelementptr ${varType.primitiveType.irType}, ${varType.irType} %arrayptr.$id, i64 0");
+          "$ptrName = getelementptr ${varType.primitiveType.irType}, ${varType.irType} %arrayptr.$id, i64 0",
+        );
       } else {
         //need size
-        throw Exception("Array size not found"); 
+        throw Exception("Array size not found");
       }
-
 
       if (children.length > 2) {
         //cant assign to array
@@ -944,7 +974,7 @@ class DeclareNode extends Node<void, void> {
 
 class AssignmentNode extends Node<void, void> {
   AssignmentNode(IdentifierNode identifier, Node value)
-      : super(null, [identifier, value]);
+    : super(null, [identifier, value]);
 
   IdentifierNode get identifier => children[0] as IdentifierNode;
 
@@ -956,16 +986,13 @@ class AssignmentNode extends Node<void, void> {
     final identifierNode = identifier;
 
     var varData = table.get(identifier.nodeValue);
-    
-    
-    
+
     if (varData == null) {
       throw Exception("Variable ${identifier.nodeValue} not found");
     }
 
-    if (varData.type is ArrayType && identifierNode is !IndexedIdentifierNode) {
+    if (varData.type is ArrayType && identifierNode is! IndexedIdentifierNode) {
       throw Exception("Cannot assign to array");
-      
     }
     if (varData.type is! ArrayType && identifierNode is IndexedIdentifierNode) {
       throw Exception("Cannot index non-array");
@@ -977,19 +1004,22 @@ class AssignmentNode extends Node<void, void> {
       if (varData.type.primitiveType != value.type.primitiveType) {
         throw Exception("Type mismatch");
       }
-      final IndexedIdentifierNode indexedIdentifierNode = identifierNode as IndexedIdentifierNode;
+      final IndexedIdentifierNode indexedIdentifierNode =
+          identifierNode as IndexedIdentifierNode;
       final indexResult = indexedIdentifierNode.index.evaluate(table);
       if (indexResult.type.primitiveType != PrimitiveTypes.int) {
         throw Exception("Index must be int");
       }
       Node.addIrLine(
-          "%arrayPtr.$id = getelementptr ${varData.type.primitiveType.irType}, ${varData.type.irType} ${varData.ptrName}, i64 ${indexResult.regName}");
+        "%arrayPtr.$id = getelementptr ${varData.type.primitiveType.irType}, ${varData.type.irType} ${varData.ptrName}, i64 ${indexResult.regName}",
+      );
       ptrName = "%arrayPtr.$id";
     } else if (varData.type != value.type) {
       throw Exception("Type mismatch");
     }
     Node.addIrLine(
-        "store ${varData.type.primitiveType.irType} ${value.regName}, ptr $ptrName");
+      "store ${varData.type.primitiveType.irType} ${value.regName}, ptr $ptrName",
+    );
   }
 }
 
@@ -1010,29 +1040,31 @@ class AssignmentNode extends Node<void, void> {
 /// ```llvm
 /// call i32 (i8*, ...) @scanf(i8* @str.0, i64* %ptr.x.0, double* %ptr.y.0)
 /// ```
-class ScanfNode extends Node<void,void> {
+class ScanfNode extends Node<void, void> {
   /// Constructs a scanf statement with format string and target variables.
   ///
   /// Parameters:
   /// - [literal]: The format string literal containing scanf format specifiers
   /// - [children]: List of identifier nodes representing variables to read into
-  ScanfNode(StringLiteral literal, List<IdentifierNode> children) : super(null, [literal, ...children]);
+  ScanfNode(StringLiteral literal, List<IdentifierNode> children)
+    : super(null, [literal, ...children]);
 
   StringLiteral get literal => children[0] as StringLiteral;
-  List<IdentifierNode> get identifiers => children.sublist(1).cast<IdentifierNode>();
+  List<IdentifierNode> get identifiers =>
+      children.sublist(1).cast<IdentifierNode>();
 
   @override
   void evaluate(SymbolTable table) {
     final strLiteral = literal.evaluate(table);
-      List<(String, String)> irLines = [];
-    
+    List<(String, String)> irLines = [];
+
     for (var identifier in identifiers) {
       var varData = table.get(identifier.nodeValue);
       if (varData == null) {
         throw Exception("Variable ${identifier.nodeValue} not found");
       }
       String ptr = varData.ptrName;
-      if (varData.type is ArrayType && identifier is !IndexedIdentifierNode) {
+      if (varData.type is ArrayType && identifier is! IndexedIdentifierNode) {
         throw Exception("Cannot scan into array");
       }
       if (varData.type is! ArrayType && identifier is IndexedIdentifierNode) {
@@ -1045,17 +1077,17 @@ class ScanfNode extends Node<void,void> {
           throw Exception("Index must be int");
         }
         Node.addIrLine(
-            "%arrayPtr.${identifier.id} = getelementptr ${varData.type.primitiveType.irType}, ${varData.type.irType} ${varData.ptrName}, i64 ${indexResult.regName}");
+          "%arrayPtr.${identifier.id} = getelementptr ${varData.type.primitiveType.irType}, ${varData.type.irType} ${varData.ptrName}, i64 ${indexResult.regName}",
+        );
         ptr = "%arrayPtr.${identifier.id}";
-      } 
+      }
       irLines.add((ptr, varData.type.primitiveType.irType));
-      
     }
     final childrenStr = irLines.map((e) => "${e.$2}* ${e.$1}").join(", ");
-    Node.addIrLine(
-        "call i32 (i8*, ...) @scanf(i8* $strLiteral, $childrenStr)");
+    Node.addIrLine("call i32 (i8*, ...) @scanf(i8* $strLiteral, $childrenStr)");
   }
 }
+
 /// Represents a string literal constant in Balbismo.
 ///
 /// A string literal node represents a constant string value in the source code.
@@ -1073,7 +1105,7 @@ class ScanfNode extends Node<void,void> {
 /// ```
 ///
 /// The string is stored as a null-terminated byte array in LLVM IR.
-class StringLiteral extends Node<String,String> {
+class StringLiteral extends Node<String, String> {
   /// Constructs a string literal with the string content.
   ///
   /// Parameters:
@@ -1084,7 +1116,6 @@ class StringLiteral extends Node<String,String> {
   String evaluate(SymbolTable table) {
     return Node.addConstantString(nodeValue);
   }
-
 }
 
 /// Enumeration of mathematical operators supported in Balbismo expressions.
@@ -1165,7 +1196,7 @@ class UnOp extends Node<MathOp, LangVal> {
   /// - [value]: String representation of the operator ("+" or "-")
   /// - [child]: The operand expression to apply the operation to
   UnOp(String value, Node<dynamic, LangVal> child)
-      : super(MathOp.fromString(value), [child]);
+    : super(MathOp.fromString(value), [child]);
 
   Node<dynamic, LangVal> get child => children[0] as Node<dynamic, LangVal>;
   @override
@@ -1181,7 +1212,8 @@ class UnOp extends Node<MathOp, LangVal> {
         return childResult;
       case MathOp.sub:
         Node.addIrLine(
-            "%unOp.$id = sub ${childResult.type.irType} 0, ${childResult.regName}");
+          "%unOp.$id = sub ${childResult.type.irType} 0, ${childResult.regName}",
+        );
         return LangVal("%unOp.$id", childResult.type);
       default:
         throw Exception("Unknown operator: $nodeValue");
@@ -1217,7 +1249,7 @@ class BinOp extends Node<MathOp, LangVal> {
   /// - [left]: The left operand expression
   /// - [right]: The right operand expression
   BinOp(String value, Node left, Node right)
-      : super(MathOp.fromString(value), [left, right]);
+    : super(MathOp.fromString(value), [left, right]);
 
   Node<dynamic, LangVal> get left => children[0] as Node<dynamic, LangVal>;
   Node<dynamic, LangVal> get right => children[1] as Node<dynamic, LangVal>;
@@ -1234,33 +1266,43 @@ class BinOp extends Node<MathOp, LangVal> {
     if (leftResult.type != rightResult.type) {
       if (leftResult.type.primitiveType == PrimitiveTypes.float) {
         Node.addIrLine(
-            "%conv.$id = sitofp i64 ${rightResult.regName} to double");
-        rightResult =
-            LangVal("%conv.$id", const PrimitiveType(PrimitiveTypes.float));
+          "%conv.$id = sitofp i64 ${rightResult.regName} to double",
+        );
+        rightResult = LangVal(
+          "%conv.$id",
+          const PrimitiveType(PrimitiveTypes.float),
+        );
       } else {
         Node.addIrLine(
-            "%conv.$id = sitofp i64 ${leftResult.regName} to double");
-        leftResult =
-            LangVal("%conv.$id", const PrimitiveType(PrimitiveTypes.float));
+          "%conv.$id = sitofp i64 ${leftResult.regName} to double",
+        );
+        leftResult = LangVal(
+          "%conv.$id",
+          const PrimitiveType(PrimitiveTypes.float),
+        );
       }
     }
     if (leftResult.type.primitiveType == PrimitiveTypes.float) {
       switch (nodeValue) {
         case MathOp.add:
           Node.addIrLine(
-              "%binOp.$id = fadd double ${leftResult.regName}, ${rightResult.regName}");
+            "%binOp.$id = fadd double ${leftResult.regName}, ${rightResult.regName}",
+          );
           return LangVal("%binOp.$id", leftResult.type);
         case MathOp.sub:
           Node.addIrLine(
-              "%binOp.$id = fsub double ${leftResult.regName}, ${rightResult.regName}");
+            "%binOp.$id = fsub double ${leftResult.regName}, ${rightResult.regName}",
+          );
           return LangVal("%binOp.$id", leftResult.type);
         case MathOp.mul:
           Node.addIrLine(
-              "%binOp.$id = fmul double ${leftResult.regName}, ${rightResult.regName}");
+            "%binOp.$id = fmul double ${leftResult.regName}, ${rightResult.regName}",
+          );
           return LangVal("%binOp.$id", leftResult.type);
         case MathOp.div:
           Node.addIrLine(
-              "%binOp.$id = fdiv double ${leftResult.regName}, ${rightResult.regName}");
+            "%binOp.$id = fdiv double ${leftResult.regName}, ${rightResult.regName}",
+          );
           return LangVal("%binOp.$id", leftResult.type);
         default:
           throw Exception("Unknown operator: $nodeValue");
@@ -1270,23 +1312,28 @@ class BinOp extends Node<MathOp, LangVal> {
     switch (nodeValue) {
       case MathOp.add:
         Node.addIrLine(
-            "%binOp.$id = add ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+          "%binOp.$id = add ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+        );
         return LangVal("%binOp.$id", leftResult.type);
       case MathOp.sub:
         Node.addIrLine(
-            "%binOp.$id = sub ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+          "%binOp.$id = sub ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+        );
         return LangVal("%binOp.$id", leftResult.type);
       case MathOp.mul:
         Node.addIrLine(
-            "%binOp.$id = mul ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+          "%binOp.$id = mul ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+        );
         return LangVal("%binOp.$id", leftResult.type);
       case MathOp.div:
         Node.addIrLine(
-            "%binOp.$id = sdiv ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+          "%binOp.$id = sdiv ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+        );
         return LangVal("%binOp.$id", leftResult.type);
       case MathOp.mod:
         Node.addIrLine(
-            "%binOp.$id = srem ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+          "%binOp.$id = srem ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+        );
         return LangVal("%binOp.$id", leftResult.type);
       default:
         throw Exception("Unknown operator: $nodeValue");
@@ -1317,20 +1364,24 @@ class PrintNode extends Node<void, void> {
   /// Parameters:
   /// - [literal]: The format string literal containing printf format specifiers
   /// - [children]: List of expressions whose values will be formatted
-  PrintNode(StringLiteral literal, List<Node<dynamic, LangVal>> children) : super(null, [literal, ...children]);
+  PrintNode(StringLiteral literal, List<Node<dynamic, LangVal>> children)
+    : super(null, [literal, ...children]);
 
-  
   StringLiteral get literal => children[0] as StringLiteral;
-  List<Node<dynamic, LangVal>> get values => children.sublist(1).cast<Node<dynamic, LangVal>>();
+  List<Node<dynamic, LangVal>> get values =>
+      children.sublist(1).cast<Node<dynamic, LangVal>>();
 
   @override
   void evaluate(SymbolTable table) {
     final strLiteral = literal.evaluate(table);
     var childResults = values.map((e) => e.evaluate(table)).toList();
     //print using printf
-    final childrenStr = childResults.map((e) => "${e.type.irType} ${e.regName}").join(", ");
+    final childrenStr = childResults
+        .map((e) => "${e.type.irType} ${e.regName}")
+        .join(", ");
     Node.addIrLine(
-        "call i32 (i8*, ...) @printf(i8* $strLiteral ${childResults.isNotEmpty ? "," : ""} $childrenStr)");
+      "call i32 (i8*, ...) @printf(i8* $strLiteral ${childResults.isNotEmpty ? "," : ""} $childrenStr)",
+    );
   }
 }
 
@@ -1422,7 +1473,7 @@ class RelOp extends Node<RelOperator, LangVal> {
   /// - [left]: The left operand expression
   /// - [right]: The right operand expression
   RelOp(String value, Node<dynamic, LangVal> left, Node<dynamic, LangVal> right)
-      : super(RelOperator.fromString(value), [left, right]);
+    : super(RelOperator.fromString(value), [left, right]);
 
   Node<dynamic, LangVal> get left => children[0] as Node<dynamic, LangVal>;
   Node<dynamic, LangVal> get right => children[1] as Node<dynamic, LangVal>;
@@ -1438,41 +1489,53 @@ class RelOp extends Node<RelOperator, LangVal> {
     if (leftResult.type != rightResult.type) {
       if (leftResult.type.primitiveType == PrimitiveTypes.float) {
         Node.addIrLine(
-            "%conv.$id = sitofp i64 ${rightResult.regName} to double");
-        rightResult =
-            LangVal("%conv.$id", const PrimitiveType(PrimitiveTypes.float));
+          "%conv.$id = sitofp i64 ${rightResult.regName} to double",
+        );
+        rightResult = LangVal(
+          "%conv.$id",
+          const PrimitiveType(PrimitiveTypes.float),
+        );
       } else {
         Node.addIrLine(
-            "%conv.$id = sitofp i64 ${leftResult.regName} to double");
-        leftResult =
-            LangVal("%conv.$id", const PrimitiveType(PrimitiveTypes.float));
+          "%conv.$id = sitofp i64 ${leftResult.regName} to double",
+        );
+        leftResult = LangVal(
+          "%conv.$id",
+          const PrimitiveType(PrimitiveTypes.float),
+        );
       }
     }
     if (leftResult.type.primitiveType == PrimitiveTypes.float) {
       switch (nodeValue) {
         case RelOperator.eq:
           Node.addIrLine(
-              "%temp.$id = fcmp oeq double ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = fcmp oeq double ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.ne:
           Node.addIrLine(
-              "%temp.$id = fcmp one double ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = fcmp one double ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.lt:
           Node.addIrLine(
-              "%temp.$id = fcmp olt double ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = fcmp olt double ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.gt:
           Node.addIrLine(
-              "%temp.$id = fcmp ogt double ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = fcmp ogt double ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.le:
           Node.addIrLine(
-              "%temp.$id = fcmp ole double ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = fcmp ole double ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.ge:
           Node.addIrLine(
-              "%temp.$id = fcmp oge double ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = fcmp oge double ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         default:
           throw Exception("Unknown operator: $nodeValue");
@@ -1481,27 +1544,33 @@ class RelOp extends Node<RelOperator, LangVal> {
       switch (nodeValue) {
         case RelOperator.eq:
           Node.addIrLine(
-              "%temp.$id = icmp eq ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = icmp eq ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.ne:
           Node.addIrLine(
-              "%temp.$id = icmp ne ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = icmp ne ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.lt:
           Node.addIrLine(
-              "%temp.$id = icmp slt ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = icmp slt ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.gt:
           Node.addIrLine(
-              "%temp.$id = icmp sgt ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = icmp sgt ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.le:
           Node.addIrLine(
-              "%temp.$id = icmp sle ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = icmp sle ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         case RelOperator.ge:
           Node.addIrLine(
-              "%temp.$id = icmp sge ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}");
+            "%temp.$id = icmp sge ${leftResult.type.irType} ${leftResult.regName}, ${rightResult.regName}",
+          );
           break;
         default:
           throw Exception("Unknown operator: $nodeValue");
@@ -1581,7 +1650,7 @@ class BoolUnOp extends Node<BoolOperator, LangVal> {
   /// - [value]: String representation of the operator ("!")
   /// - [child]: The operand expression to apply the operation to
   BoolUnOp(String value, Node<dynamic, LangVal> child)
-      : super(BoolOperator.fromString(value), [child]);
+    : super(BoolOperator.fromString(value), [child]);
 
   Node<dynamic, LangVal> get child => children[0] as Node<dynamic, LangVal>;
 
@@ -1633,8 +1702,10 @@ class BoolBinOp extends Node<BoolOperator, LangVal> {
   /// - [left]: The left operand expression
   /// - [right]: The right operand expression
   BoolBinOp(
-      String value, Node<dynamic, LangVal> left, Node<dynamic, LangVal> right)
-      : super(BoolOperator.fromString(value), [left, right]);
+    String value,
+    Node<dynamic, LangVal> left,
+    Node<dynamic, LangVal> right,
+  ) : super(BoolOperator.fromString(value), [left, right]);
 
   Node<dynamic, LangVal> get left => children[0] as Node<dynamic, LangVal>;
   Node<dynamic, LangVal> get right => children[1] as Node<dynamic, LangVal>;
@@ -1657,14 +1728,16 @@ class BoolBinOp extends Node<BoolOperator, LangVal> {
     switch (nodeValue) {
       case BoolOperator.and:
         Node.addIrLine(
-            "%and.$id = and i64 ${leftResult.regName}, ${rightResult.regName}");
+          "%and.$id = and i64 ${leftResult.regName}, ${rightResult.regName}",
+        );
         Node.addIrLine("%logic.$id = icmp ne i64 %and.$id, 0");
         Node.addIrLine("%boolBinOp.$id = zext i1 %logic.$id to i64");
 
         break;
       case BoolOperator.or:
         Node.addIrLine(
-            "%and.$id = or i64 ${leftResult.regName}, ${rightResult.regName}");
+          "%and.$id = or i64 ${leftResult.regName}, ${rightResult.regName}",
+        );
         Node.addIrLine("%logic.$id = icmp ne i64 %and.$id, 0");
         Node.addIrLine("%boolBinOp.$id = zext i1 %logic.$id to i64");
         break;
@@ -1711,9 +1784,11 @@ class IfNode extends Node<void, void> {
   /// - [condition]: Expression that evaluates to the condition (0 = false, non-zero = true)
   /// - [thenBlock]: Block of statements to execute if condition is true
   /// - [elseBlock]: Optional block of statements to execute if condition is false
-  IfNode(Node<dynamic, LangVal> condition, BlockNode thenBlock,
-      [Node? elseBlock])
-      : super(null, [condition, thenBlock, if (elseBlock != null) elseBlock]);
+  IfNode(
+    Node<dynamic, LangVal> condition,
+    BlockNode thenBlock, [
+    Node? elseBlock,
+  ]) : super(null, [condition, thenBlock, if (elseBlock != null) elseBlock]);
 
   Node<dynamic, LangVal> get condition => children[0] as Node<dynamic, LangVal>;
   BlockNode get thenBlock => children[1] as BlockNode;
@@ -1730,9 +1805,11 @@ class IfNode extends Node<void, void> {
     }
 
     Node.addIrLine(
-        "%conditionCast.$id = icmp ne i64 ${conditionResult.regName}, 0");
+      "%conditionCast.$id = icmp ne i64 ${conditionResult.regName}, 0",
+    );
     Node.addIrLine(
-        "br i1 %conditionCast.$id, label %then.$id, label %else.$id");
+      "br i1 %conditionCast.$id, label %then.$id, label %else.$id",
+    );
     Node.addIrlLabel("then.$id");
     thenBlock.evaluate(table);
     final elseNode = elseBlock;
@@ -1784,7 +1861,7 @@ class WhileNode extends Node<void, void> {
   /// - [condition]: Expression that evaluates to the loop condition (0 = false, non-zero = true)
   /// - [block]: Block of statements to execute in each iteration
   WhileNode(Node<dynamic, LangVal> condition, BlockNode block)
-      : super(null, [condition, block]);
+    : super(null, [condition, block]);
 
   Node<dynamic, LangVal> get condition => children[0] as Node<dynamic, LangVal>;
   BlockNode get block => children[1] as BlockNode;
@@ -1800,9 +1877,11 @@ class WhileNode extends Node<void, void> {
     }
 
     Node.addIrLine(
-        "%conditionCast.$id = icmp ne i64 ${conditionResult.regName}, 0");
+      "%conditionCast.$id = icmp ne i64 ${conditionResult.regName}, 0",
+    );
     Node.addIrLine(
-        "br i1 %conditionCast.$id, label %block.$id, label %end.$id");
+      "br i1 %conditionCast.$id, label %block.$id, label %end.$id",
+    );
     Node.endIrLabel();
     Node.addIrlLabel("block.$id");
     block.evaluate(table);
@@ -1837,8 +1916,7 @@ class TypeCast extends Node<PrimitiveType, LangVal> {
   /// - [type]: The target primitive type to cast to
   /// - [child]: The expression whose value will be cast
   TypeCast(PrimitiveType type, Node<dynamic, LangVal> child)
-      : super(type, [child]);
-  
+    : super(type, [child]);
 
   Node<dynamic, LangVal> get child => children[0] as Node<dynamic, LangVal>;
 
@@ -1850,16 +1928,13 @@ class TypeCast extends Node<PrimitiveType, LangVal> {
     }
     if (childResult.type.primitiveType == PrimitiveTypes.int &&
         nodeValue.primitiveType == PrimitiveTypes.float) {
-      Node.addIrLine(
-          "%conv.$id = sitofp i64 ${childResult.regName} to double");
+      Node.addIrLine("%conv.$id = sitofp i64 ${childResult.regName} to double");
       return LangVal("%conv.$id", const PrimitiveType(PrimitiveTypes.float));
     } else if (childResult.type.primitiveType == PrimitiveTypes.float &&
         nodeValue.primitiveType == PrimitiveTypes.int) {
-      Node.addIrLine(
-          "%conv.$id = fptosi double ${childResult.regName} to i64");
+      Node.addIrLine("%conv.$id = fptosi double ${childResult.regName} to i64");
       return LangVal("%conv.$id", const PrimitiveType(PrimitiveTypes.int));
     }
     throw Exception("Invalid type cast");
   }
-
-} 
+}

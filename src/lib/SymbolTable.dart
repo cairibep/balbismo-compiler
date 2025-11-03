@@ -1,5 +1,3 @@
-
-
 /// Symbol table management for the Balbismo compiler.
 ///
 /// This library provides the core symbol table functionality that tracks variables,
@@ -14,8 +12,6 @@
 /// - Type checking and validation
 
 import 'package:balbismo/vars.dart';
-
-
 
 /// Manages symbols (variables and functions) within a scope during compilation.
 ///
@@ -120,7 +116,6 @@ class SymbolTable {
   static LangFunc? getFunction(String key) {
     return _functions[key];
   }
-
 
   /// Declares a new variable in the current scope.
   ///
@@ -236,5 +231,3 @@ class SymbolTable {
     _table.clear();
   }
 }
-
-

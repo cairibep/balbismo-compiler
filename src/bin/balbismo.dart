@@ -32,6 +32,6 @@ import 'package:balbismo/main.dart' as entrypoint;
 ///
 /// Parameters:
 /// - [arguments]: List of command line arguments provided to the executable
-void main(List<String> arguments) async{
+void main(List<String> arguments) async {
   await entrypoint.main(arguments);
 }

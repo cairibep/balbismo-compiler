@@ -33,7 +33,7 @@ enum CompileModes {
   BIN,
 
   /// Generate IR and execute directly using LLVM interpreter (lli)
-  RUN;
+  RUN,
 }
 
 /// Handles invalid compilation mode by displaying error and usage information.
@@ -44,7 +44,7 @@ enum CompileModes {
 ///
 /// Returns:
 ///   [CompileModes.ASM] as a fallback compilation mode.
-CompileModes invalidMode(){
+CompileModes invalidMode() {
   print("Invalid mode");
   printUsage();
   return CompileModes.ASM;
@@ -78,14 +78,14 @@ CompileModes invalidMode(){
 ///
 /// Throws:
 /// - [Exception] when compilation fails at any stage
-Future<void> main(List<String> arguments) async{
+Future<void> main(List<String> arguments) async {
   var mode = CompileModes.IR;
   var fileInName = "";
   var extraArgs = <String>[];
   if (arguments.length == 1) {
-      printUsage();
+    printUsage();
   } else if (arguments.length > 1) {
-    mode  = switch (arguments[0]){
+    mode = switch (arguments[0]) {
       "gen-ir" => CompileModes.IR,
       "gen-asm" => CompileModes.ASM,
       "compile" => CompileModes.BIN,
@@ -104,8 +104,7 @@ Future<void> main(List<String> arguments) async{
     CompileModes.OPT_IR => "build/main.ll",
     CompileModes.ASM => "build/main.s",
     CompileModes.BIN => "build/main",
-    CompileModes.RUN => ""
-
+    CompileModes.RUN => "",
   };
   // check if -o is in extraArgs
   if (extraArgs.contains("-o")) {
@@ -114,10 +113,10 @@ Future<void> main(List<String> arguments) async{
     extraArgs.removeAt(index);
     extraArgs.removeAt(index);
   }
-  
+
   Node.ir += "declare i32 @printf(i8*, ...)\n";
   Node.ir += "declare i32 @scanf(i8*, ...)\n";
-    //check if build directory exists
+  //check if build directory exists
   if (!Directory("build").existsSync()) {
     Directory("build").createSync();
     //check if tmp directory exists
@@ -126,9 +125,11 @@ Future<void> main(List<String> arguments) async{
     }
   }
   //run bison parser binary named balbismo_parser using process pass file to stdin
-  var parser = await Process.start("lex-parse/balbismo_parser", ["-o", "build/tmp/ast.out"]);
+  var parser = await Process.start("lex-parse/balbismo_parser", [
+    "-o",
+    "build/tmp/ast.out",
+  ]);
   var codeFile = File(fileInName);
-
 
   codeFile.openRead().pipe(parser.stdin);
   print("Parsing with flex-bison");
@@ -151,29 +152,39 @@ Future<void> main(List<String> arguments) async{
   File("build/tmp/main.ll").writeAsStringSync(Node.ir);
   print("-----------------IR Generated Successfully-----------------");
 
-
   switch (mode) {
     case CompileModes.IR:
       print("Outputting IR code to $outputPath");
       File(outputPath).writeAsStringSync(Node.ir);
     case CompileModes.OPT_IR:
       //run opt on build/main.ll
-      var opt = await Process.start("opt", ["-S", "build/tmp/main.ll", "-o", outputPath, ...extraArgs]);
+      var opt = await Process.start("opt", [
+        "-S",
+        "build/tmp/main.ll",
+        "-o",
+        outputPath,
+        ...extraArgs,
+      ]);
       print("Optimizing IR code with opt and outputting to $outputPath");
-      opt.stdout.forEach((e)=>print(e));
+      opt.stdout.forEach((e) => print(e));
       String optError = await opt.stderr.transform(utf8.decoder).join("\n");
       int optExitcode = await opt.exitCode;
       if (optError.isNotEmpty || optExitcode != 0) {
         print("-------------Opt failed---------------");
         print(optError);
         exit(1);
-      } 
+      }
       print("---------------Opt finished successfully----------------");
     case CompileModes.ASM:
       //run llc on build/main.ll
       print("Generating assembly with llc and outputting to $outputPath");
-      var llc = await Process.start("llc", ["-o", outputPath, "build/tmp/main.ll", ...extraArgs]);
-      llc.stdout.forEach((e)=>print(e));
+      var llc = await Process.start("llc", [
+        "-o",
+        outputPath,
+        "build/tmp/main.ll",
+        ...extraArgs,
+      ]);
+      llc.stdout.forEach((e) => print(e));
       String llcError = await llc.stderr.transform(utf8.decoder).join("\n");
       int llcExitcode = await llc.exitCode;
       if (llcError.isNotEmpty || llcExitcode != 0) {
@@ -186,8 +197,13 @@ Future<void> main(List<String> arguments) async{
     case CompileModes.BIN:
       // run clang on build/main.s
       print("Compiling with clang and outputting to $outputPath");
-      var clang = await Process.start("clang", ["-o", outputPath, "build/tmp/main.ll", ...extraArgs]);
-      clang.stdout.forEach((e)=>print(e));
+      var clang = await Process.start("clang", [
+        "-o",
+        outputPath,
+        "build/tmp/main.ll",
+        ...extraArgs,
+      ]);
+      clang.stdout.forEach((e) => print(e));
       String clangError = await clang.stderr.transform(utf8.decoder).join("\n");
       int clangExitcode = await clang.exitCode;
       if (clangExitcode != 0) {
@@ -200,15 +216,18 @@ Future<void> main(List<String> arguments) async{
       //run lli on build/main.ll
       print("Running with lli");
       print("----program output:\n");
-      var lli = await Process.start("stdbuf", ["-oL","lli", "build/tmp/main.ll", ...extraArgs]);
+      var lli = await Process.start("stdbuf", [
+        "-oL",
+        "lli",
+        "build/tmp/main.ll",
+        ...extraArgs,
+      ]);
       lli.stdout.transform(utf8.decoder).forEach((element) => print(element));
       stdin.pipe(lli.stdin);
-     
-      
+
       String lliError = await lli.stderr.transform(utf8.decoder).join("\n");
       int lliExitcode = await lli.exitCode;
       if (lliExitcode != 0) {
-
         print("-------------lli failed---------------");
         print(lliError);
         exit(1);
@@ -221,7 +240,6 @@ Future<void> main(List<String> arguments) async{
 
   print("-----------------Finished Compiling Successfully-----------------");
   exit(0);
-
 }
 
 /// Displays comprehensive usage information for the Balbismo compiler.
@@ -239,7 +257,7 @@ Future<void> main(List<String> arguments) async{
 /// - Limitations on argument usage per mode
 ///
 /// This function terminates the program with exit code 1 after displaying usage.
-void printUsage(){
+void printUsage() {
   print("Usage: balbismo <mode> <file> [args]");
   print("<mode> is one of the following:");
   print("Modes:");
@@ -252,9 +270,15 @@ void printUsage(){
   print("<file> is the input file to be compiled");
   print("[args] are arguments");
   print("Arguments:");
-  print("  -o <file>: Output file path default is build/main.ext where ext is ll, s or nothing");
-  print("  Extra arguments will be passed to the compilers/interpreters as listed below:");
-  print("     compile uses clang, run uses lli, gen-asm uses llc and opt-ir uses opt.");
+  print(
+    "  -o <file>: Output file path default is build/main.ext where ext is ll, s or nothing",
+  );
+  print(
+    "  Extra arguments will be passed to the compilers/interpreters as listed below:",
+  );
+  print(
+    "     compile uses clang, run uses lli, gen-asm uses llc and opt-ir uses opt.",
+  );
   print("  Extra arguments cant be used with gen-ir");
   exit(1);
 }
